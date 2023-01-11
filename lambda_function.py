@@ -75,7 +75,8 @@ def update_git_repo(env, repo):
   origin = f'https://user:{token}@github.com/amar-b/knowledge_repo'
 
   paths = [repo_path + l.decode("utf-8")  for l in porcelain.ls_files(repo)]
-  r = porcelain.add(repo, paths=paths)
+  r = porcelain.add(repo) # add untracked
+  r = porcelain.add(repo, paths=paths) # add tracked
   porcelain.commit(repo, 'KnowledgeRepoToGit - '+ time.ctime())
   porcelain.push(repo, origin, force=True)
   return len(paths)
