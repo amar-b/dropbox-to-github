@@ -1,9 +1,7 @@
 # Dropbox to github
 - Simple script that takes the current state of a public/private dropbox folder and commits it a repo hosted on github
 - Assumes that the repo already exists and a regiestered app with dropbox with a valid client id/secret
-- Intention when writing this is so it can be used as a lambda function that can be triggered to an a schedule using a cron expression (via EventBridge) to keep personal in dropbox backed up in a version controlled way
-
-
+- Intention when writing this is so it can be used as a lambda function that can be triggered to an a schedule using a cron expression (via EventBridge) to keep personal in dropbox backed up in a version controlled way. I also assumed that I won't be making changes to the git repo driectly as it will be overritten by changes coming from dropbox.
 
 ____
 ## Secrets and variables 
