@@ -34,6 +34,3 @@ export \
 ```Bash
 sh ./deploy_code.sh
 ```
-
-## Invoke
-aws lambda invoke --function-name dropbox-to-github --cli-binary-format raw-in-base64-out /dev/stdout
