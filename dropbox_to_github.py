@@ -47,16 +47,17 @@ def clone_repo(env):
 
 
 def update_repo(env):
-  basePath = env["DBX_TO_GH_TMP_PATH"]
+  local_base_path = env["DBX_TO_GH_TMP_PATH"]
+  dropbox_path = env["DROPBOX_FOLDER_PATH"][1:] if env["DROPBOX_FOLDER_PATH"][0] == '/' else env["DROPBOX_FOLDER_PATH"]
+  
   dbx = dropbox.Dropbox(get_dropbox_sl_token(env))
+  dbx.files_download_zip_to_file(f'{local_base_path}/temp.zip', f'/{dropbox_path}')
 
-  dbx.files_download_zip_to_file(f'{basePath}/temp.zip', env["DROPBOX_FOLDER_PATH"])
+  with zipfile.ZipFile(f'{local_base_path}/temp.zip', "r") as zip_ref:
+      zip_ref.extractall(f'{local_base_path}/temp')
 
-  with zipfile.ZipFile(f'{basePath}/temp.zip', "r") as zip_ref:
-      zip_ref.extractall(f'{basePath}/temp')
-
-  src = f'{basePath}/temp/{env["GITHUB_REPO_NAME"]}'
-  dtn = f'{basePath}/repo'
+  src = f'{local_base_path}/temp/{dropbox_path}'
+  dtn = f'{local_base_path}/repo'
 
   for f in set(os.listdir(src) + os.listdir(dtn) ):
     if ".git" in f:
