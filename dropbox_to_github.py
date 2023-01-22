@@ -5,8 +5,22 @@ import zipfile
 import requests
 import time
 import json
+from io import BytesIO, RawIOBase
 from requests.auth import HTTPBasicAuth
 from dulwich import porcelain
+
+class NoneStream(RawIOBase):
+  def read(self, size=-1):
+      return None
+
+  def readall(self):
+      return None
+
+  def readinto(self, b):
+      return None
+
+  def write(self, b):
+      return None
 
 def get_dropbox_sl_token(env):
   data = {
@@ -43,7 +57,7 @@ def read_env_vars():
 def clone_repo(env):
   token, user_name, repo_name =  env["GITHUB_TOKEN"], env["GITHUB_USER_NAME"], env["GITHUB_REPO_NAME"]
 
-  return porcelain.clone(f'https://user:{token}@github.com/{user_name}/{repo_name}', f'{env["DBX_TO_GH_TMP_PATH"]}/repo')
+  return porcelain.clone(f'https://user:{token}@github.com/{user_name}/{repo_name}', f'{env["DBX_TO_GH_TMP_PATH"]}/repo', errstream=NoneStream())
 
 
 def update_repo(env):
@@ -80,23 +94,20 @@ def commit_repo(env, repo):
 
   local_paths = [f'{dp}/{f}' for dp, dn, filenames in os.walk(repo_path) for f in filenames if ".git" not in dp and ".git" not in f]
   tracked_paths = [repo_path + l.decode("utf-8")  for l in porcelain.ls_files(repo)]
-  paths = list(set(local_paths+tracked_paths))
 
-  porcelain.add(repo, paths = paths)
+  porcelain.add(repo, paths = list(set(local_paths+tracked_paths)))
   porcelain.commit(repo, f'dropbox-to-github app - {time.ctime()}')
-  porcelain.push(repo, f'https://user:{token}@github.com/{user_name}/{repo_name}', force=True)
-
-  return len(paths)
+  porcelain.push(repo, f'https://user:{token}@github.com/{user_name}/{repo_name}', force=True, errstream=NoneStream())
 
 def update_github_from_dropbox():
   env = read_env_vars()
   clean(env)
   repo = clone_repo(env)
   update_repo(env)
-  count = commit_repo(env, repo)
+  commit_repo(env, repo)
   clean(env)
 
-  return f'Updated {count} files in {env["GITHUB_REPO_NAME"]}'
+  return f'Updated {env["GITHUB_USER_NAME"]}/{env["GITHUB_REPO_NAME"]} from {env["DROPBOX_FOLDER_PATH"]}'
 
 
 # local
